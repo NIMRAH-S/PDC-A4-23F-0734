@@ -24,5 +24,16 @@ def main():
     m = pd.DataFrame(out)
     m.to_csv("results/metrics.csv", index=False)
 
+    print(m.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
+
+    # Bonus: problem size for E >= 0.6 (isoefficiency). E = 1/(1+To/Ts), Ts ~ n
+    # => need Ts >= 1.5*To  =>  n_req = n * 1.5 * To / Ts  (using largest n)
+    print("\nEstimated n needed for E >= 0.6:")
+    big = m[m.n == m.n.max()]
+    for _, r in big.iterrows():
+        if r.p > 1:
+            n_req = r.n * 1.5 * max(r.overhead, 0) / r["T_S"]
+            print(f"  p={int(r.p)}: n >= {n_req:.2e}")
+
 if __name__ == "__main__":
     main()
