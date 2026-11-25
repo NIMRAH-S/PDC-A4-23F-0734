@@ -1,11 +1,14 @@
-import time
-import numpy as np
+import os, time, csv
 from multiprocessing import Pool
+import numpy as np
+import metrics, plot
 
-CHUNK = 5_000_000
+
 SIZES = [10**6, 10**7, 10**8]
 PROCS = [1, 2, 4, 8]
 RUNS = 5
+CHUNK = 5_000_000
+
 
 def count_inside(args):
     """Count random points inside the unit quarter circle."""
@@ -19,15 +22,19 @@ def count_inside(args):
         done += m
     return inside
 
+
 def serial(n):                       # T_S: single-threaded numpy version
     return 4.0 * count_inside((n, 0)) / n
+
 
 def parallel(n, p):                  # split n samples across p workers
     parts = [(n // p + (1 if i < n % p else 0), i + 1) for i in range(p)]
     with Pool(p) as pool:
         return 4.0 * sum(pool.map(count_inside, parts)) / n
 
+
 if __name__ == "__main__":
+    os.makedirs("results", exist_ok=True); os.makedirs("figures", exist_ok=True)
     rows = []
     for n in SIZES:
         for r in range(1, RUNS + 1):
@@ -38,3 +45,9 @@ if __name__ == "__main__":
                 t = time.perf_counter(); parallel(n, p)
                 rows.append(["parallel", n, p, r, time.perf_counter() - t])
         print(f"n={n} done")
+    with open("results/raw_timings.csv", "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(["workload", "n", "p", "run", "time_sec"])
+        w.writerows(rows)
+    metrics.main()
+    plot.main()
