@@ -1,7 +1,11 @@
+import time
 import numpy as np
 from multiprocessing import Pool
 
 CHUNK = 5_000_000
+SIZES = [10**6, 10**7, 10**8]
+PROCS = [1, 2, 4, 8]
+RUNS = 5
 
 def count_inside(args):
     """Count random points inside the unit quarter circle."""
@@ -24,5 +28,13 @@ def parallel(n, p):                  # split n samples across p workers
         return 4.0 * sum(pool.map(count_inside, parts)) / n
 
 if __name__ == "__main__":
-    print("serial   pi ~", serial(10**6))
-    print("parallel pi ~", parallel(10**6, 4))
+    rows = []
+    for n in SIZES:
+        for r in range(1, RUNS + 1):
+            t = time.perf_counter(); serial(n)
+            rows.append(["serial", n, 1, r, time.perf_counter() - t])
+        for p in PROCS:
+            for r in range(1, RUNS + 1):
+                t = time.perf_counter(); parallel(n, p)
+                rows.append(["parallel", n, p, r, time.perf_counter() - t])
+        print(f"n={n} done")
