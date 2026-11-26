@@ -4,7 +4,6 @@ import numpy as np
 def speedup(ts, tp): return ts / tp
 def efficiency(s, p): return s / p
 def cost(p, tp): return p * tp
-
 def overhead(p, tp, ts): return p * tp - ts
 def serial_fraction(s, p):
     return np.nan if p == 1 else (1 / s - 1 / p) / (1 - 1 / p)
@@ -23,7 +22,6 @@ def main():
                         overhead=overhead(p, tp, ts), serial_fraction=serial_fraction(s, p)))
     m = pd.DataFrame(out)
     m.to_csv("results/metrics.csv", index=False)
-
     print(m.to_string(index=False, float_format=lambda v: f"{v:.4f}"))
 
     # Bonus: problem size for E >= 0.6 (isoefficiency). E = 1/(1+To/Ts), Ts ~ n
